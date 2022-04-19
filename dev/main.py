@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 import tkinter.messagebox as mb
 import random
 from PIL import Image, ImageDraw
+from collections import Counter
 from re import findall
 
 
@@ -17,6 +18,7 @@ class CaesarEncryption:
     def encrypt(self, text, delta):
         if not delta.isnumeric():
             raise TypeError
+        delta = int(delta)
         text = text.lower()
         if text[0] in Alphabet.RU:
             language = 'RU'
@@ -77,9 +79,25 @@ class CaesarEncryption:
             language = 'EN'
 
         if language == 'RU':
-            for i in range(len(Alphabet.RU)):
-                key = self.decrypt(text, i)
-                yield key
+            refactored_text = ''
+            for i in text:
+                if i in Alphabet.RU:
+                    refactored_text += i
+            ct = Counter(refactored_text)
+            most_commons = ct.most_common(1)
+            most_frequent = most_commons[0][0]
+            delta = Alphabet.RU.index(most_frequent) - Alphabet.RU.index("о")
+            return self.decrypt(text, delta)
+        elif language == 'EN':
+            refactored_text = ''
+            for i in text:
+                if i in Alphabet.EN:
+                    refactored_text += i
+            ct = Counter(refactored_text)
+            most_commons = ct.most_common(1)
+            most_frequent = most_commons[0][0]
+            delta = Alphabet.EN.index(most_frequent) - Alphabet.EN.index("о")
+            return self.decrypt(text, delta)
 
 
 class VigenereEncryption:
@@ -203,9 +221,9 @@ def main():
         if mode == 0:
             encryption_mode = CaesarEncryption()
             try:
-                res = encryption_mode.encrypt(text_input.get("1.0", 'end-1c'), int(key_input.get("1.0", 'end-1c')))
+                res = encryption_mode.encrypt(text_input.get("1.0", 'end-1c'), key_input.get("1.0", 'end-1c'))
                 result.insert('1.0', res)
-            except TypeError:
+            except Exception:
                 mb.showerror('Ошибка', 'Ключ для шифра Цезаря должен быть числом')
         if mode == 1:
             encryption_mode = VigenereEncryption()
@@ -276,6 +294,14 @@ def main():
         except Exception:
             mb.showerror(title="Упс!", message="Не смог сохранить результат")
 
+    def brute_force_caesar():
+        encryption_mode = CaesarEncryption()
+        try:
+            res = encryption_mode.BRUTEFORCE(text_input.get("1.0", 'end-1c'))
+            result.insert('1.0', res)
+        except TypeError:
+            mb.showerror('Ошибка', 'что то пошло не так')
+
     root = Tk()
     root.title("мега крутой шифроватор")
     root.geometry("800x600+200+100")
@@ -312,6 +338,9 @@ def main():
 
     save_button = Button(f1, text="Сохранить результат", command=save_file)
     save_button.pack(side='right')
+
+    caesar_brute_force_button = Button(f1, text="расшифровка Цезаря", command=brute_force_caesar)
+    caesar_brute_force_button.pack(side='bottom')
 
     root.mainloop()
 
