@@ -1,15 +1,15 @@
 from tkinter import *
 from tkinter.filedialog import *
 import tkinter.messagebox as mb
-from abc import ABC, abstractmethod
 import random
-from PIL import Image, ImageDraw, ImageTk
+from PIL import Image, ImageDraw
+from re import findall
 from collections import Counter
-from Globals import Alphabet
+from dev.Globals import Alphabet
+from pathlib import Path
 
 
 class CaesarEncryption:
-
     def encrypt(self, text, delta):
         if not delta.isnumeric():
             raise TypeError
@@ -128,7 +128,8 @@ class VernamEncryption:
         text, delta = text_to_binary(text), text_to_binary(delta)
         encrypted = []
         for i in range(len(text)):
-            encrypted.append(format((int(str(text[i]), 2) ^ int(str(delta[i]), 2)), 'b'))
+            encrypted_char = format((int(str(text[i]), 2) ^ int(str(delta[i]), 2)), 'b')
+            encrypted.append(encrypted_char)
         encrypted = binary_to_text(encrypted)
         result = ''.join([str(item) for item in encrypted])
         return result
@@ -149,22 +150,34 @@ def binary_to_text(event):
     return [chr(int(str(elem), 2)) for elem in event]
 
 
-def steganography_encrypt(text):
-    keys = []
-    img_to_decode = askopenfile(mode="w", filetypes='.png')
-    if img_to_decode is None:
-        return
+def steganography_encrypt(path_to_img, text):
+    keys = ''
 
-    draw = ImageDraw.Draw(img_to_decode)
-    width = img_to_decode.size[0]
-    height = img_to_decode.size[1]
-    pix = img_to_decode.load()
+    img = Image.open(path_to_img)
+    draw = ImageDraw.Draw(img)
+    width = img.size[0]
+    height = img.size[1]
+    pix = img.load()
     for elem in ([ord(elem) for elem in text]):
         key = (random.randint(1, width - 10), random.randint(1, height - 10))
         g, b = pix[key][1:3]
         draw.point(key, (elem, g, b))
-        keys.append(key)
-    img_to_decode.save('encoded_file.png', "PNG")
+        keys += key
+    img.save('encoded_file.png', "PNG")
+    return keys
+
+
+def steganography_decrypt(path_to_img, key):
+    a = []
+    keys = []
+    img = Image.open(path_to_img)
+    pix = img.load()
+    y = str([line.strip() for line in key])
+    for i in range(len(findall(r'\((\d+),', y))):
+        keys.append((int(findall(r'\((\d+),', y)[i]), int(findall(r',\s(\d+)\)', y)[i])))
+    for key in keys:
+        a.append(pix[tuple(key)][0])
+    return ''.join([chr(elem) for elem in a])
 
 
 def main():
@@ -174,7 +187,7 @@ def main():
             try:
                 res = encryption_mode.encrypt(text_input.get("1.0", 'end-1c'), key_input.get("1.0", 'end-1c'))
                 result.insert('1.0', res)
-            except Exception:
+            except TypeError:
                 mb.showerror('Ошибка', 'Ключ для шифра Цезаря должен быть числом')
         if mode == 1:
             encryption_mode = VigenereEncryption()
@@ -232,7 +245,6 @@ def main():
         inp = askopenfile(mode="r")
         if inp is None:
             return
-        FILE_NAME = inp.name
         data = inp.read()
         text_input.delete('1.0', END)
         text_input.insert('1.0', data)
@@ -254,10 +266,24 @@ def main():
             mb.showerror('Ошибка', 'что то пошло не так')
 
     def stega_encrypt():
-        ...
+        img_to_decode = askopenfile(mode="w")
+        if img_to_decode is None:
+            return
+        text_to_encode = text_input.get('1.0', 'end-1c')
+        path_to_img = Path(img_to_decode.name)
+        keys = steganography_encrypt(path_to_img, text_to_encode)
+        mb.showinfo('Успешно!', 'Картинка сохранена с названием encoded_file.png')
+        key_input.insert('1.0', keys)
 
     def stega_decrypt():
-        ...
+        img_to_decode = askopenfile(mode="w", filetypes='.png')
+        if img_to_decode is None:
+            return
+        path_to_img = Path(img_to_decode.name)
+        keys = key_input.get('1.0', 'end-1c')
+        decoded_text = steganography_decrypt(path_to_img, keys)
+        text_input.delete('1.0', END)
+        text_input.insert('1.0', 'end-1c')
 
     root = Tk()
     root.title("мега крутой шифроватор")
@@ -299,10 +325,10 @@ def main():
     caesar_brute_force_button = Button(f1, text="расшифровка Цезаря", command=brute_force_caesar)
     caesar_brute_force_button.pack()
 
-    load_image_button = Button(f1, text="Зашифровать в изображение", command=stega_encrypt)
-    load_image_button.pack(side='left')
-
-    decrypt_image_button = Button(f1, text="Расшифровать что-то в сообщении", command=stega_decrypt)
+    encrypt_image_button = Button(f1, text="Стеганография - зашифровка", command=stega_encrypt)
+    decrypt_image_button = Button(f1, text="Стеганография - расшифровка", command=stega_decrypt)
+    encrypt_image_button.pack()
+    decrypt_image_button.pack()
 
     root.mainloop()
 
