@@ -1,16 +1,11 @@
 from tkinter import *
 from tkinter.filedialog import *
-from abc import ABC, abstractmethod
 import tkinter.messagebox as mb
+from abc import ABC, abstractmethod
 import random
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageTk
 from collections import Counter
-from re import findall
-
-
-class Alphabet:
-    RU = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя"
-    EN = "abcdefghijklmnopqrstuvwxyz"
+from Globals import Alphabet
 
 
 class CaesarEncryption:
@@ -21,83 +16,53 @@ class CaesarEncryption:
         delta = int(delta)
         text = text.lower()
         if text[0] in Alphabet.RU:
-            language = 'RU'
+            cipher_alphabet = Alphabet.RU
         else:
-            language = 'EN'
+            cipher_alphabet = Alphabet.EN
 
         encrypted = ''
 
-        if language == 'RU':
-            for i in range(len(text)):
-                if text[i] not in Alphabet.RU:
-                    encrypted += text[i]
-                else:
-                    char = text[i]
-                    encrypted += Alphabet.RU[(Alphabet.RU.find(char) + delta) % (len(Alphabet.RU))]
-            return encrypted
-
-        elif language == 'EN':
-            for i in range(len(text)):
-                if text[i] not in Alphabet.EN:
-                    encrypted += text[i]
-                else:
-                    char = text[i]
-                    encrypted += Alphabet.EN[(Alphabet.EN.find(char) + delta) % (len(Alphabet.EN))]
-            return encrypted
+        for i in range(len(text)):
+            if text[i] not in cipher_alphabet:
+                encrypted += text[i]
+            else:
+                char = text[i]
+                encrypted += cipher_alphabet[(cipher_alphabet.find(char) + delta) % (len(cipher_alphabet))]
+        return encrypted
 
     def decrypt(self, text, delta):
         text = text.lower()
         if text[0] in Alphabet.RU:
-            language = 'RU'
+            cipher_alphabet = Alphabet.RU
         else:
-            language = 'EN'
+            cipher_alphabet = Alphabet.EN
 
         decrypted = ''
 
-        if language == 'RU':
-            for i in range(len(text)):
-                if text[i] not in Alphabet.RU:
-                    decrypted += text[i]
-                else:
-                    char = text[i]
-                    decrypted += Alphabet.RU[(Alphabet.RU.find(char) - delta) % (len(Alphabet.RU))]
-            return decrypted
-        elif language == 'EN':
-            for i in range(len(text)):
-                if text[i] not in Alphabet.RU:
-                    decrypted += text[i]
-                else:
-                    char = text[i]
-                    decrypted += Alphabet.EN[(Alphabet.EN.find(char) - delta) % (len(Alphabet.EN))]
-            return decrypted
+        for i in range(len(text)):
+            if text[i] not in cipher_alphabet:
+                decrypted += text[i]
+            else:
+                char = text[i]
+                decrypted += cipher_alphabet[(cipher_alphabet.find(char) - delta) % (len(cipher_alphabet))]
+        return decrypted
 
     def BRUTEFORCE(self, text):  # капсом, потому-что круче
         text = text.lower()
         if text[0] in Alphabet.RU:
-            language = 'RU'
+            cipher_alphabet = Alphabet.RU
         else:
-            language = 'EN'
+            cipher_alphabet = Alphabet.EN
 
-        if language == 'RU':
-            refactored_text = ''
-            for i in text:
-                if i in Alphabet.RU:
-                    refactored_text += i
-            ct = Counter(refactored_text)
-            most_commons = ct.most_common(1)
-            most_frequent = most_commons[0][0]
-            delta = Alphabet.RU.index(most_frequent) - Alphabet.RU.index("о")
-            return self.decrypt(text, delta)
-        elif language == 'EN':
-            refactored_text = ''
-            for i in text:
-                if i in Alphabet.EN:
-                    refactored_text += i
-            ct = Counter(refactored_text)
-            most_commons = ct.most_common(1)
-            most_frequent = most_commons[0][0]
-            delta = Alphabet.EN.index(most_frequent) - Alphabet.EN.index("о")
-            return self.decrypt(text, delta)
+        refactored_text = ''
+        for i in text:
+            if i in cipher_alphabet:
+                refactored_text += i
+        ct = Counter(refactored_text)
+        most_commons = ct.most_common(1)
+        most_frequent = most_commons[0][0]
+        delta = cipher_alphabet.index(most_frequent) - cipher_alphabet.index("о")
+        return self.decrypt(text, delta)
 
 
 class VigenereEncryption:
@@ -105,62 +70,40 @@ class VigenereEncryption:
     def encrypt(self, text, delta):
         text = text.lower()
         if text[0] in Alphabet.RU:
-            language = 'RU'
+            cipher_alphabet = Alphabet.RU
         else:
-            language = 'EN'
+            cipher_alphabet = Alphabet.EN
 
         encrypted = ''
 
-        if language == 'RU':
-            for i in range(len(text)):
-                if text[i] not in Alphabet.RU:
-                    encrypted += text[i]
-                else:
-                    char = Alphabet.RU.index(text[i])
-                    key = Alphabet.RU.index(delta[i % len(delta)])
-                    value = (char + key) % len(Alphabet.RU)
-                    encrypted += Alphabet.RU[value]
-            return encrypted
-        elif language == 'EN':
-            for i in range(len(text)):
-                if text[i] not in Alphabet.EN:
-                    encrypted += text[i]
-                else:
-                    char = Alphabet.EN.index(text[i])
-                    key = Alphabet.EN.index(delta[i % len(delta)])
-                    value = (char + key) % len(Alphabet.EN)
-                    encrypted += Alphabet.EN[value]
-            return encrypted
+        for i in range(len(text)):
+            if text[i] not in cipher_alphabet:
+                encrypted += text[i]
+            else:
+                char = cipher_alphabet.index(text[i])
+                key = cipher_alphabet.index(delta[i % len(delta)])
+                value = (char + key) % len(cipher_alphabet)
+                encrypted += cipher_alphabet[value]
+        return encrypted
 
     def decrypt(self, text, delta):
         text = text.lower()
         if text[0] in Alphabet.RU:
-            language = 'RU'
+            cipher_alphabet = Alphabet.RU
         else:
-            language = 'EN'
+            cipher_alphabet = Alphabet.EN
 
         decrypted = ''
 
-        if language == 'RU':
-            for i in range(len(text)):
-                if text[i] not in Alphabet.RU:
-                    decrypted += text[i]
-                else:
-                    char = Alphabet.RU.index(text[i])
-                    key = Alphabet.RU.index(delta[i % len(delta)])
-                    value = (char - key) % len(Alphabet.RU)
-                    decrypted += Alphabet.RU[value]
-            return decrypted
-        elif language == 'EN':
-            for i in range(len(text)):
-                if text[i] not in Alphabet.EN:
-                    decrypted += text[i]
-                else:
-                    char = Alphabet.EN.index(text[i])
-                    key = Alphabet.EN.index(delta[i % len(delta)])
-                    value = (char - key) % len(Alphabet.EN)
-                    decrypted += Alphabet.EN[value]
-            return decrypted
+        for i in range(len(text)):
+            if text[i] not in cipher_alphabet:
+                decrypted += text[i]
+            else:
+                char = cipher_alphabet.index(text[i])
+                key = cipher_alphabet.index(delta[i % len(delta)])
+                value = (char - key) % len(cipher_alphabet)
+                decrypted += cipher_alphabet[value]
+        return decrypted
 
 
 def LanguageValidation(key):
@@ -206,14 +149,22 @@ def binary_to_text(event):
     return [chr(int(str(elem), 2)) for elem in event]
 
 
-def steganography_encrypt():
+def steganography_encrypt(text):
     keys = []
-    img = Image.open(input("path to image: "))
-    draw = ImageDraw.Draw(img)
-    width = img.size[0]
-    height = img.size[1]
-    pix = img.load()
-    f = open('keys.txt', 'w')
+    img_to_decode = askopenfile(mode="w", filetypes='.png')
+    if img_to_decode is None:
+        return
+
+    draw = ImageDraw.Draw(img_to_decode)
+    width = img_to_decode.size[0]
+    height = img_to_decode.size[1]
+    pix = img_to_decode.load()
+    for elem in ([ord(elem) for elem in text]):
+        key = (random.randint(1, width - 10), random.randint(1, height - 10))
+        g, b = pix[key][1:3]
+        draw.point(key, (elem, g, b))
+        keys.append(key)
+    img_to_decode.save('encoded_file.png', "PNG")
 
 
 def main():
@@ -302,15 +253,21 @@ def main():
         except TypeError:
             mb.showerror('Ошибка', 'что то пошло не так')
 
+    def stega_encrypt():
+        ...
+
+    def stega_decrypt():
+        ...
+
     root = Tk()
     root.title("мега крутой шифроватор")
     root.geometry("800x600+200+100")
     Label(root, text="Введите текст для шифровки:  ").grid(row=0, sticky='w')
     Label(root, text="Введите ключ:").grid(row=2, sticky='w')
-    Label(root, text="Результат:").grid(row=5, sticky='w')
+    Label(root, text="Результат:").grid(row=4, sticky='w')
 
     f1 = Frame(root)
-    f1.grid(row=4, column=0, sticky='nsew')
+    f1.grid(row=6, columnspan=3, sticky='nsew')
 
     text_input = Text(root, width=40, height=3)
     key_input = Text(root, width=40, height=3)
@@ -318,29 +275,34 @@ def main():
 
     text_input.grid(row=0, column=1, columnspan=3, rowspan=2)
     key_input.grid(row=2, column=1, columnspan=3, rowspan=2)
-    result.grid(row=5, column=1, columnspan=3, rowspan=2)
+    result.grid(row=4, column=1, columnspan=3, rowspan=2)
 
     FILE_NAME = NONE
 
     mode = 0
     modes = ['Caesar', 'Vigenere', 'Vernam']
     mode_button = Button(f1, text='Режим шифровки: ' + modes[mode], command=change_mode)
-    mode_button.pack(side="top")
+    mode_button.pack(side="left")
 
     encryption_button = Button(f1, text="Шифровать", command=encrypt)
-    encryption_button.pack(side="top")
+    encryption_button.pack(side="left")
 
     decryption_button = Button(f1, text="Дешифровать", command=decrypt)
-    decryption_button.pack(side="top")
+    decryption_button.pack(side="left")
 
     load_button = Button(f1, text="Загрузить текст", command=load_file)
     load_button.pack(side='left')
 
     save_button = Button(f1, text="Сохранить результат", command=save_file)
-    save_button.pack(side='right')
+    save_button.pack(side='left')
 
     caesar_brute_force_button = Button(f1, text="расшифровка Цезаря", command=brute_force_caesar)
-    caesar_brute_force_button.pack(side='bottom')
+    caesar_brute_force_button.pack()
+
+    load_image_button = Button(f1, text="Зашифровать в изображение", command=stega_encrypt)
+    load_image_button.pack(side='left')
+
+    decrypt_image_button = Button(f1, text="Расшифровать что-то в сообщении", command=stega_decrypt)
 
     root.mainloop()
 
