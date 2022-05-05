@@ -11,6 +11,10 @@ from pathlib import Path
 
 class CaesarEncryption:
     def encrypt(self, text, delta):
+        """Зашифровывает сообщение шифром Цезаря
+                text - Текст (строка), который надо зашифровать. Если первая буква - символ или буква латиницы,
+                то автоматически считает, что текст написан на английском. Иначе - написан на русском.
+                delta - целое число, шаг для шифра Цезаря"""
         if not delta.isnumeric():
             raise TypeError
         delta = int(delta)
@@ -31,6 +35,10 @@ class CaesarEncryption:
         return encrypted
 
     def decrypt(self, text, delta):
+        """Расшифровывает сообщение шифром Цезаря
+                text - Текст (строка), который надо расшифровать. Если первая буква - символ или буква латиницы,
+                то автоматически считает, что текст написан на английском. Иначе - написан на русском.
+                delta - целое число, шаг для шифра Цезаря"""
         text = text.lower()
         if text[0] in Alphabet.RU:
             cipher_alphabet = Alphabet.RU
@@ -48,6 +56,9 @@ class CaesarEncryption:
         return decrypted
 
     def BRUTEFORCE(self, text):  # капсом, потому-что круче
+        """Расшифровывает текст, зашифрованный шифром Цезаря методом частотного анализа
+                text - Текст (строка), который надо зашифровать. Если первая буква - символ или буква латиницы,
+                то автоматически считает, что текст написан на английском. Иначе - написан на русском"""
         text = text.lower()
         if text[0] in Alphabet.RU:
             cipher_alphabet = Alphabet.RU
@@ -68,6 +79,10 @@ class CaesarEncryption:
 class VigenereEncryption:
 
     def encrypt(self, text, delta):
+        """Зашифровывает сообщение шифром Виженера
+                text - Текст (строка), который надо зашифровать. Если первая буква - символ или буква латиницы,
+                то автоматически считает, что текст написан на английском. Иначе - написан на русском.
+                delta - строка, шаг для шифра Виженера"""
         text = text.lower()
         if text[0] in Alphabet.RU:
             cipher_alphabet = Alphabet.RU
@@ -87,6 +102,10 @@ class VigenereEncryption:
         return encrypted
 
     def decrypt(self, text, delta):
+        """Расшифровывает сообщение шифром Виженера
+                        text - Текст (строка), который надо расшифровать. Если первая буква - символ или буква латиницы,
+                        то автоматически считает, что текст написан на английском. Иначе - написан на русском.
+                        delta - строка, шаг для шифра Виженера"""
         text = text.lower()
         if text[0] in Alphabet.RU:
             cipher_alphabet = Alphabet.RU
@@ -107,6 +126,8 @@ class VigenereEncryption:
 
 
 def LanguageValidation(key):
+    """Проверяет ключ для шифра Виженера
+        key - ключ, который надо проверить"""
     if not key:
         return 0
     if key[0] in Alphabet.RU:
@@ -123,6 +144,9 @@ def LanguageValidation(key):
 class VernamEncryption:
 
     def encrypt(self, text, delta):
+        """Расшифровывает сообщение шифром Вернама
+                        text - Текст (строка), который надо расшифровать.
+                        delta - ключ для шифра Вернама. Длина должна быть больше, чем длина текста"""
         if len(text) > len(delta):
             raise TypeError
         text, delta = text_to_binary(text), text_to_binary(delta)
@@ -136,21 +160,30 @@ class VernamEncryption:
 
 
 def key_generator_for_vernam(text):
+    """Генерирует ключ для шифра Вернама
+        text - текст. Нужна только его длина"""
     key = ''
     for i in range(len(text)):
         key += chr(random.randint(1, 1114111))
     return key
 
 
-def text_to_binary(event):
-    return [int(format(ord(elem), 'b')) for elem in event]
+def text_to_binary(text):
+    """Переводит текст в бинарный вид
+        text - текст (Строка)"""
+    return [int(format(ord(elem), 'b')) for elem in text]
 
 
-def binary_to_text(event):
-    return [chr(int(str(elem), 2)) for elem in event]
+def binary_to_text(binary_text):
+    """Переводит текст в бинарном виде в нормальный вид
+        binary_text - текст (строка) в бинарном виде"""
+    return [chr(int(str(elem), 2)) for elem in binary_text]
 
 
 def steganography_encrypt(path_to_img, text):
+    """Стеганография, шифрует в изображении текст, и сохраняет его в виде encoded_file.png
+        path_to_img - путь к исходному изображению
+        text - текст, который надо зашифровать"""
     keys = ''
 
     img = Image.open(path_to_img)
@@ -168,6 +201,9 @@ def steganography_encrypt(path_to_img, text):
 
 
 def steganography_decrypt(path_to_img, key):
+    """Стеганография, расшифровывает в изображении текст, и возвращает его
+            path_to_img - путь к исходному изображению
+            key - ключ для расшифровки"""
     a = []
     keys = []
     img = Image.open(path_to_img)
@@ -182,6 +218,8 @@ def steganography_decrypt(path_to_img, key):
 
 def main():
     def encrypt():
+        """Кнопка, которая считывает мод шифровки и по данному моду производит шифровку
+            читает с text_input текст для шифровки и с key_input ключ для шифровки"""
         if mode == 0:
             encryption_mode = CaesarEncryption()
             try:
@@ -209,6 +247,8 @@ def main():
                                         длине текста")
 
     def decrypt():
+        """Кнопка, которая считывает мод расшифровки и по данному моду производит расшифровку
+                    читает с text_input текст для расшифровки и с key_input ключ для расшифровки"""
         if mode == 0:
             encryption_mode = CaesarEncryption()
             if not key_input.get("1.0", 'end-1c').isnumeric():
@@ -237,11 +277,13 @@ def main():
                                                     длине текста")
 
     def change_mode():
+        """Кнопка, меняющая режим шифровки"""
         nonlocal mode
         mode = (mode + 1) % 3
         mode_button['text'] = 'Режим шифровки: ' + modes[mode]
 
     def load_file():
+        """Кнопка, считывающая файл для шифровки"""
         inp = askopenfile(mode="r")
         if inp is None:
             return
@@ -250,6 +292,7 @@ def main():
         text_input.insert('1.0', data)
 
     def save_file():
+        """Кнопка, сохраняющая расшифрованный текст"""
         out = asksaveasfile(mode='w', defaultextension='.txt')
         data = result.get('1.0', END)
         try:
@@ -258,6 +301,7 @@ def main():
             mb.showerror(title="Упс!", message="Не смог сохранить результат")
 
     def brute_force_caesar():
+        """Кнопка, которая расшифровывает текст, зашифрованный шифром Цезаря, методом частотного анализа"""
         encryption_mode = CaesarEncryption()
         try:
             res = encryption_mode.BRUTEFORCE(text_input.get("1.0", 'end-1c'))
@@ -266,6 +310,7 @@ def main():
             mb.showerror('Ошибка', 'что то пошло не так')
 
     def stega_encrypt():
+        """Кнопка, отвечающая за шифровку Стеганографии"""
         img_to_decode = askopenfile(mode="w")
         if img_to_decode is None:
             return
@@ -276,6 +321,7 @@ def main():
         key_input.insert('1.0', keys)
 
     def stega_decrypt():
+        """Кнопка, отвечающая за расшифровку Стеганографии"""
         img_to_decode = askopenfile(mode="w", filetypes='.png')
         if img_to_decode is None:
             return
