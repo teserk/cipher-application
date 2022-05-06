@@ -1,15 +1,13 @@
-from tkinter import Tk, Label, Frame, Text, Button
 import tkinter.messagebox as mb
-import random
 from pathlib import Path
 from src.CaesarEncryption import CaesarEncryption
-from src.VernamEncryption import VernamEncryption
-from src.VigenereEncryption import VigenereEncryption
-from src.steganography import steganography_decrypt, steganography_encrypt
 from src.key_generator import key_generator_for_vernam
 from src.languageValidation import LanguageValidation
-from tkinter import END
+from src.steganography import steganography_decrypt, steganography_encrypt
+from src.VernamEncryption import VernamEncryption
+from src.VigenereEncryption import VigenereEncryption
 from tkinter.filedialog import askopenfile, asksaveasfile
+from tkinter import Tk, Label, Frame, Text, Button, END
 
 
 class UserInterface(Tk):
@@ -170,12 +168,12 @@ class UserInterface(Tk):
         """
         Кнопка, отвечающая за шифровку Стеганографии
         """
-        img_to_decode = askopenfile(mode="w")
+        img_to_decode = askopenfile(mode="r")
         if img_to_decode is None:
             return
         text_to_encode = self.text_input.get('1.0', 'end-1c')
-        path_to_img = Path(img_to_decode.name)
-        keys = steganography_encrypt(path_to_img, text_to_encode)
+
+        keys = steganography_encrypt(img_to_decode.name, text_to_encode)
         mb.showinfo('Успешно!', 'Картинка сохранена с названием encoded_file.png')
         self.key_input.insert('1.0', keys)
 
@@ -183,11 +181,10 @@ class UserInterface(Tk):
         """
         Кнопка, отвечающая за расшифровку Стеганографии
         """
-        img_to_decode = askopenfile(mode="w", filetypes='.png')
+        img_to_decode = askopenfile(mode="w")
         if img_to_decode is None:
             return
-        path_to_img = Path(img_to_decode.name)
         keys = self.key_input.get('1.0', 'end-1c')
-        decoded_text = steganography_decrypt(path_to_img, keys)
-        self.text_input.delete('1.0', END)
-        self.text_input.insert('1.0', 'end-1c')
+        decoded_text = steganography_decrypt(img_to_decode.name, keys)
+        self.result.delete('1.0', END)
+        self.result.insert('1.0', decoded_text)

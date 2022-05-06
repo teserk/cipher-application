@@ -3,19 +3,6 @@ from PIL import Image, ImageDraw
 from re import findall
 
 
-def key_generator_for_vernam(text):
-    """
-    Генерирует ключ для шифра Вернама
-    ---
-    params: text
-    text : текст. Нужна только его длина
-    """
-    key = ''
-    for i in range(len(text)):
-        key += chr(random.randint(1, 1114111))
-    return key
-
-
 def steganography_encrypt(path_to_img, text):
     """
     Стеганография, шифрует в изображении текст, и сохраняет его в виде encoded_file.png
@@ -24,7 +11,7 @@ def steganography_encrypt(path_to_img, text):
     path_to_img : путь к исходному изображению
     text : текст, который надо зашифровать
     """
-    keys = ''
+    keys = []
 
     img = Image.open(path_to_img)
     draw = ImageDraw.Draw(img)
@@ -35,9 +22,9 @@ def steganography_encrypt(path_to_img, text):
         key = (random.randint(1, width - 10), random.randint(1, height - 10))
         g, b = pix[key][1:3]
         draw.point(key, (elem, g, b))
-        keys += key
+        keys.append(key)
     img.save('encoded_file.png', "PNG")
-    return keys
+    return str(keys)
 
 
 def steganography_decrypt(path_to_img, key):
